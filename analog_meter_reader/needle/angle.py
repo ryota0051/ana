@@ -16,6 +16,16 @@ def get_needle_angle(
         y2: int,
         center_x: int,
         center_y: int) -> float:
+    '''真下を0度としたときの針の角度を返す
+
+    Args:
+        x1: 針の開始x座標
+        y1: 針の開始y座標
+        x2: 針の終了x座標
+        y2: 針の終了y座標
+        center_x: メータの中心x座標
+        center_y: メータの中心y座標
+    '''
     dist_pt_0 = dist2pts(center_x, center_y, x1, y1)
     dist_pt_1 = dist2pts(center_x, center_y, x2, y2)
     if (dist_pt_0 > dist_pt_1):
@@ -104,3 +114,58 @@ def angle2meter_value(
     angle_range = max_angle - min_angle
     angle_ratio = (needle_angle - min_angle) / angle_range
     return float(angle_ratio * value_range + min_value)
+
+
+def plot_angle_into_img(
+        img: np.ndarray,
+        center_x: int,
+        center_y: int,
+        r: int,
+        dst: str,
+        separation: int = 10,
+        interval: int = 36):
+    '''メータの周囲に角度を描画する
+
+    Args:
+        img: 描画対象
+        center_x: メータの中心x座標
+        center_y: メータの中心y座標
+        r: メータの半径
+        dst: 画像保存先
+        separation: 円の分割数
+        interval: 円の刻み角度
+    '''
+    p1 = np.zeros((interval, 2))
+    p2 = np.zeros((interval, 2))
+    p_text = np.zeros((interval, 2))
+    text_offset_x = 10
+    text_offset_y = 5
+    for i in range(interval):
+        for j in range(2):
+            point_angle = separation * i * np.pi / 180
+            text_angle = separation * (i + 9) * np.pi / 180
+            p1[i][j] = center_x + 0.9 * r * np.cos(point_angle) if j % 2 == 0 \
+                else center_y + 0.9 * r * np.sin(point_angle)
+            p2[i][j] = center_x + r * np.cos(point_angle) if j % 2 == 0 \
+                else center_y + r * np.sin(point_angle)
+            p_text[i][j] = center_x - text_offset_x + 1.2 * r * np.cos(text_angle) if j % 2 == 0 \
+                else center_y + text_offset_y + 1.2 * r * np.sin(text_angle)
+    for i in range(interval):
+        cv2.line(
+            img,
+            (int(p1[i][0]), int(p1[i][1])),
+            (int(p2[i][0]), int(p2[i][1])),
+            (0, 255, 0),
+            2
+        )
+        cv2.putText(
+            img,
+            f'{int(i * separation)}',
+            (int(p_text[i][0]), int(p_text[i][1])),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 255, 0),
+            2,
+            cv2.LINE_AA
+        )
+    cv2.imwrite(dst, img)

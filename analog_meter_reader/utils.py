@@ -12,6 +12,9 @@ def get_average_of_circles(
     Args:
         circles: ハフ変換で検出した円
         num_circles: 検出した円の数
+
+    Returns:
+        [円の中心x座標, 円の中心y座標, 円の半径]
     '''
     average_x = 0
     average_y = 0
